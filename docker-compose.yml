@@ -1,0 +1,70 @@
+services:
+  files_db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: files_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - files_db_data:/var/lib/postgresql/data
+
+  file-storage:
+    build: ./file_storage
+    env_file:
+      - ./file_storage/.env
+    ports:
+      - "8001:8000"
+    depends_on:
+      files_db:
+        condition: service_healthy
+    volumes:
+      - files_data:/usr/src/app/storage
+
+  analysis_db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: analysis_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - analysis_db_data:/var/lib/postgresql/data
+
+  file-analysis:
+    build: ./file_analysis
+    env_file:
+      - ./file_analysis/.env
+    ports:
+      - "8002:8000"
+    depends_on:
+      analysis_db:
+        condition: service_healthy
+      file-storage:
+        condition: service_started
+
+  api-gateway:
+    build: ./api_gateway
+    env_file:
+      - ./api_gateway/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      file-storage:
+        condition: service_started
+      file-analysis:
+        condition: service_started
+
+volumes:
+  files_db_data:
+  files_data:
+  analysis_db_data:
+  analysis_data:
