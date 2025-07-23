@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
 from fastapi.responses import JSONResponse, StreamingResponse, Response
 import httpx
-from .config import FILE_STORAGE_URL, FILE_ANALYSIS_URL, FILE_ANALYSIS_IMAGE_URL
+from .config import FILE_STORAGE_URL, FILE_ANALYSIS_URL
 from .deps import get_http_client
 from .deps import client
 
